@@ -1,92 +1,107 @@
-pip install -r requirements.txt
-import joblib
+import streamlit as st
 import pandas as pd
-import numpy as np
-from sklearn.preprocessing import StandardScaler
+import joblib
+from data_preprocessing import data_preprocessing, encoder_Credit_Mix, encoder_Payment_Behaviour, encoder_Payment_of_Min_Amount
+from prediction import prediction
 
-# Load the trained model
-try:
-    model = joblib.load("best_rf_model.joblib")
-    print("Model loaded successfully!")
-except FileNotFoundError:
-    print("Error: 'best_rf_model.joblib' not found. Make sure the model file is in the same directory.")
-    exit()
+col1, col2 = st.columns([1, 5])
+with col1:
+    st.image("https://github.com/dicodingacademy/assets/raw/main/logo.png", width=130)
+with col2:
+    st.header('Credit Scoring App (Prototype) :sparkles:')
 
-# Create some sample data for testing
-# Replace this with your actual new data in a similar format as your training data
-# Make sure the column names and order are the same as your training data
-sample_data = {
-    'Marital_status': [1, 2, 1],
-    'Application_mode': [1, 2, 1],
-    'Course': [1, 5620, 9500],
-    'Daytime_evening_attendance': [1, 0, 1],
-    'Previous_qualification': [1, 1, 1],
-    'Nationality': [1, 1, 1],
-    'Mother_occupation': [3, 3, 3],
-    'Father_occupation': [3, 3, 3],
-    'Admission_grade': [140, 130, 150],
-    'Displaced': [1, 0, 1],
-    'Educational_special_needs': [0, 0, 0],
-    'Debtor': [0, 1, 0],
-    'Tuition_fees_up_to_date': [1, 0, 1],
-    'Gender': [1, 0, 1],
-    'Scholarship_holder': [0, 1, 0],
-    'Age_at_enrollment': [20, 25, 19],
-    'International': [0, 0, 0],
-    'Curricular_units_1st_sem_credited': [0, 0, 0],
-    'Curricular_units_1st_sem_enrolled': [6, 6, 6],
-    'Curricular_units_1st_sem_evaluations': [7, 6, 7],
-    'Curricular_units_1st_sem_approved': [6, 4, 6],
-    'Curricular_units_1st_sem_grade': [14, 12, 15],
-    'Curricular_units_1st_sem_without_evaluations': [0, 0, 0],
-    'Curricular_units_2nd_sem_credited': [0, 0, 0],
-    'Curricular_units_2nd_sem_enrolled': [6, 6, 6],
-    'Curricular_units_2nd_sem_evaluations': [7, 6, 7],
-    'Curricular_units_2nd_sem_approved': [6, 4, 6],
-    'Curricular_units_2nd_sem_grade': [14, 12, 15],
-    'Curricular_units_2nd_sem_without_evaluations': [0, 0, 0],
-    'Unemployment_rate': [10.8, 11.2, 10.5],
-    'Inflation_rate': [1.4, 1.5, 1.3],
-    'GDP': [179.0, 181.0, 178.0]
-}
+data = pd.DataFrame()
 
-# Convert the sample data to a pandas DataFrame
-sample_df = pd.DataFrame(sample_data)
+col1, col2, col3 = st.columns(3)
 
-# It's crucial to apply the same preprocessing (scaling) as used during training
-# You need to have access to the fitted scaler object or re-fit it on your training data
-# For demonstration, we will create a dummy scaler here. In a real scenario, load your trained scaler.
-# scaler = joblib.load("scaler.joblib") # Load your trained scaler
+with col1:
+    Credit_Mix = st.selectbox(label='Credit_Mix', options=encoder_Credit_Mix.classes_, index=1)
+    data["Credit_Mix"] = [Credit_Mix]
 
-# If you don't have the trained scaler saved, you can create a new one and fit it to the sample data
-# This is not ideal for production as the scaling should be consistent with training
-# A better approach is to save the fitted scaler during training and load it here.
-scaler = StandardScaler()
-# In a real application, you would fit the scaler on your training data and save it.
-# Then load it here and transform the new data.
-# For this example, we'll just fit it on the sample data (not recommended for production)
-try:
-    # This assumes you have a scaler saved.
-    scaler = joblib.load("scaler.joblib")
-    print("Scaler loaded successfully!")
-except FileNotFoundError:
-     print("Warning: Scaler not found. Creating a new scaler and fitting on sample data. For production, save and load your trained scaler.")
-     # Fit on the sample data - NOT RECOMMENDED FOR PRODUCTION USE
-     scaler.fit(sample_df)
+with col2:
+    Payment_of_Min_Amount = st.selectbox(label='Payment_of_Min_Amount', options=encoder_Payment_of_Min_Amount.classes_, index=1)
+    data["Payment_of_Min_Amount"] = [Payment_of_Min_Amount]
+
+with col3:
+    Payment_Behaviour = st.selectbox(label='Payment_Behaviour', options=encoder_Payment_Behaviour.classes_, index=5)
+    data["Payment_Behaviour"] = Payment_Behaviour
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    # st.header("Kolom 1")
+    Age = int(st.number_input(label='Age', value=23))
+    data["Age"] = Age
+
+with col2:
+    Num_Bank_Accounts = int(st.number_input(label='Num_Bank_Accounts', value=3))
+    data["Num_Bank_Accounts"] = Num_Bank_Accounts
+
+with col3:
+    Num_Credit_Card = int(st.number_input(label='Num_Credit_Card', value=4))
+    data["Num_Credit_Card"] = Num_Credit_Card
+
+with col4:
+    Interest_Rate = float(st.number_input(label='Interest_Rate', value=3))
+    data["Interest_Rate"] = Interest_Rate
 
 
-sample_data_scaled = scaler.transform(sample_df)
+col1, col2, col3, col4 = st.columns(4)
 
-# Make predictions
-predictions = model.predict(sample_data_scaled)
+with col1:
+    Num_of_Loan = int(st.number_input(label='Num_of_Loan', value=4))
+    data["Num_of_Loan"] = Num_of_Loan
 
-# Print the predictions
-print("\nPredictions for the sample data:")
-print(predictions)
+with col2:
+    # st.header("Kolom 1")
+    Delay_from_due_date = int(st.number_input(label='Delay_from_due_date', value=3))
+    data["Delay_from_due_date"] = Delay_from_due_date
 
-# You can map the predictions back to the original labels if needed
-# dropout = 0, graduate = 1
-status_map = {0: 'Dropout', 1: 'Graduate'}
-predicted_status = [status_map[pred] for pred in predictions]
-print("\nPredicted Status:")
-print(predicted_status)
+with col3:
+    Num_of_Delayed_Payment = int(st.number_input(label='Num_of_Delayed_Payment', value=7))
+    data["Num_of_Delayed_Payment"] = Num_of_Delayed_Payment
+
+with col4:
+    Changed_Credit_Limit = float(st.number_input(label='Changed_Credit_Limit', value=11.27))
+    data["Changed_Credit_Limit"] = Changed_Credit_Limit
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    Num_Credit_Inquiries = float(st.number_input(label='Num_Credit_Inquiries', value=5))
+    data["Num_Credit_Inquiries"] = Num_Credit_Inquiries
+
+with col2:
+    Outstanding_Debt = float(st.number_input(label='Outstanding_Debt', value=809.98))
+    data["Outstanding_Debt"] = Outstanding_Debt
+
+with col3:
+    Monthly_Inhand_Salary = float(st.number_input(label='Monthly_Inhand_Salary', value=1824.8))
+    data["Monthly_Inhand_Salary"] = Monthly_Inhand_Salary
+
+with col4:
+    Monthly_Balance = float(st.number_input(label='Monthly_Balance', value=186.26))
+    data["Monthly_Balance"] = Monthly_Balance
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    Amount_invested_monthly = float(st.number_input(label='Amount_invested_monthly', value=236.64))
+    data["Amount_invested_monthly"] = Amount_invested_monthly
+
+with col2:
+    Total_EMI_per_month = float(st.number_input(label='Total_EMI_per_month', value=49.5))
+    data["Total_EMI_per_month"] = Total_EMI_per_month
+
+with col3:
+    Credit_History_Age = float(st.number_input(label='Credit_History_Age', value=216))
+    data["Credit_History_Age"] = Credit_History_Age
+
+with st.expander("View the Raw Data"):
+    st.dataframe(data=data, width=800, height=10)
+
+if st.button('Predict'):
+    new_data = data_preprocessing(data=data)
+    with st.expander("View the Preprocessed Data"):
+        st.dataframe(data=new_data, width=800, height=10)
+    st.write("Credit Scoring: {}".format(prediction(new_data)))
