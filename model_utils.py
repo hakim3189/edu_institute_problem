@@ -1,43 +1,34 @@
 import joblib
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+# Remove the StandardScaler import as it's no longer needed
 
-def load_model_and_scaler(model_path="best_rf_model.joblib", scaler_path="scaler.joblib"):
+def load_model(model_path="best_rf_model.joblib"): # Removed scaler_path argument
     """
-    Loads the trained model and scaler.
+    Loads the trained model.
 
     Args:
         model_path (str): Path to the saved model file.
-        scaler_path (str): Path to the saved scaler file.
 
     Returns:
-        tuple: A tuple containing the loaded model and scaler objects.
-               Returns (None, None) if files are not found.
+        object: The loaded model object. Returns None if the model is not found.
     """
     model = None
-    scaler = None
     try:
         model = joblib.load(model_path)
         print(f"Model loaded successfully from {model_path}!")
     except FileNotFoundError:
         print(f"Error: Model file '{model_path}' not found.")
+        return None # Return None if model not found
 
-    try:
-        scaler = joblib.load(scaler_path)
-        print(f"Scaler loaded successfully from {scaler_path}!")
-    except FileNotFoundError:
-         print(f"Warning: Scaler file '{scaler_path}' not found. You may need to scale your data manually or ensure the scaler is saved.")
+    return model
 
-    return model, scaler
-
-def predict_status(model, scaler, data):
+def predict_status(model, data): # Removed scaler argument
     """
-    Makes predictions on new data using the loaded model and scaler.
+    Makes predictions on new data using the loaded model.
 
     Args:
         model: The trained model object.
-        scaler: The fitted scaler object.
         data (pd.DataFrame): DataFrame containing the new data for prediction.
 
     Returns:
@@ -52,17 +43,10 @@ def predict_status(model, scaler, data):
     if not isinstance(data, pd.DataFrame):
         data = pd.DataFrame(data)
 
-    # Scale the data using the provided scaler
-    # If scaler is None, this step will be skipped, but it's crucial for accurate predictions
-    if scaler is not None:
-        data_scaled = scaler.transform(data)
-    else:
-        print("Warning: Scaler not provided. Predictions will be made on unscaled data.")
-        data_scaled = data
-
+    # No scaling performed here
 
     # Make predictions
-    predictions = model.predict(data_scaled)
+    predictions = model.predict(data) # Predict directly on the input data
 
     # Map predictions back to original labels
     status_map = {0: 'Dropout', 1: 'Graduate'}
@@ -76,24 +60,18 @@ if __name__ == "__main__":
     # Example usage:
     print("Running example usage from model_utils.py")
 
-    # Load the model and scaler
-    # Make sure your model and scaler files are in the same directory
-    model, scaler = load_model_and_scaler()
+    # Load the model
+    model = load_model() # Call load_model without scaler_path
 
     if model is not None:
         # Create some sample data for testing
-        # Replace this with your actual new data
         sample_data = {
             'Marital_status': [1, 2, 1],
             'Application_mode': [1, 2, 1],
-            'Application_order': [1, 2, 1],
             'Course': [1, 5620, 9500],
             'Daytime_evening_attendance': [1, 0, 1],
             'Previous_qualification': [1, 1, 1],
-            'Previous_qualification_grade': [25, 50, 13], 
             'Nationality': [1, 1, 1],
-            'Mothers_qualification': [1, 12, 22],
-            'Fathers_qualification': [2, 13, 44],
             'Mother_occupation': [3, 3, 3],
             'Father_occupation': [3, 3, 3],
             'Admission_grade': [140, 130, 150],
@@ -122,11 +100,11 @@ if __name__ == "__main__":
             'GDP': [179.0, 181.0, 178.0]
         }
 
-        # Convert sample data to DataFrame (if it's not already)
+        # Convert sample data to DataFrame
         sample_df = pd.DataFrame(sample_data)
 
         # Make predictions
-        predicted_status = predict_status(model, scaler, sample_df)
+        predicted_status = predict_status(model, sample_df) # Call predict_status without scaler
 
         # Print the predicted status
         if predicted_status is not None:
